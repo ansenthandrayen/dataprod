@@ -1,4 +1,4 @@
-# Suivi Production
+# DataProd
 
 Plateforme de suivi de production industrielle — gestion des opérateurs, saisie de résultats de tests, contrôle qualité et traçabilité produit.
 
@@ -38,8 +38,8 @@ Plateforme de suivi de production industrielle — gestion des opérateurs, sais
 ### Setup
 
 \`\`\`bash
-git clone https://github.com/ansenthandrayen/suivi-production-dashboard.git
-cd suivi-production-dashboard
+git clone https://github.com/ansenthandrayen/dataprod.git
+cd dataprod
 composer install
 \`\`\`
 
