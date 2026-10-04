@@ -1,0 +1,20 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Nouvel utilisateur{% endblock %}
+
+{% block body %}
+    <h1>Inscrire un nouvel utilisateur</h1>
+
+    {# Messages flash : affichés une seule fois #}
+    {% for message in app.flashes('success') %}
+        <p>{{ message }}</p>
+    {% endfor %}
+
+    {{ form_start(form) }}
+        {{ form_row(form.email) }}
+        {{ form_row(form.plainPassword) }}
+        {{ form_row(form.roles) }}
+
+        <button type="submit">Créer le compte</button>
+    {{ form_end(form) }}
+{% endblock %}
