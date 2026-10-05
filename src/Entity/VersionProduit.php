@@ -29,9 +29,16 @@ class VersionProduit
     #[ORM\OneToMany(targetEntity: Nomenclature::class, mappedBy: 'versionProduit')]
     private Collection $nomenclatures;
 
+    /**
+     * @var Collection<int, Lot>
+     */
+    #[ORM\OneToMany(targetEntity: Lot::class, mappedBy: 'versionProduit')]
+    private Collection $lots;
+
     public function __construct()
     {
         $this->nomenclatures = new ArrayCollection();
+        $this->lots = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -87,6 +94,36 @@ class VersionProduit
             // set the owning side to null (unless already changed)
             if ($nomenclature->getVersionProduit() === $this) {
                 $nomenclature->setVersionProduit(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Lot>
+     */
+    public function getLots(): Collection
+    {
+        return $this->lots;
+    }
+
+    public function addLot(Lot $lot): static
+    {
+        if (!$this->lots->contains($lot)) {
+            $this->lots->add($lot);
+            $lot->setVersionProduit($this);
+        }
+
+        return $this;
+    }
+
+    public function removeLot(Lot $lot): static
+    {
+        if ($this->lots->removeElement($lot)) {
+            // set the owning side to null (unless already changed)
+            if ($lot->getVersionProduit() === $this) {
+                $lot->setVersionProduit(null);
             }
         }
 
