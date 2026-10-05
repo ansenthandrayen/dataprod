@@ -22,7 +22,7 @@ class SousEnsemble
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
-    private ?ReferenceSousEnsemble $referenceSousEnsemble = null;
+    private ?VersionSousEnsemble $versionSousEnsemble = null;
 
     public function getId(): ?int
     {
@@ -53,15 +53,16 @@ class SousEnsemble
         return $this;
     }
 
-    public function getReferenceSousEnsemble(): ?ReferenceSousEnsemble
+    public function getVersionSousEnsemble(): ?VersionSousEnsemble
     {
-        return $this->referenceSousEnsemble;
+        return $this->versionSousEnsemble;
     }
 
-    public function setReferenceSousEnsemble(?ReferenceSousEnsemble $referenceSousEnsemble): static
+    public function setVersionSousEnsemble(?VersionSousEnsemble $versionSousEnsemble): static
     {
-        $this->referenceSousEnsemble = $referenceSousEnsemble;
+        $this->versionSousEnsemble = $versionSousEnsemble;
 
         return $this;
     }
+
 }

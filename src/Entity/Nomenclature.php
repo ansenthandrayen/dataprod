@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\NomenclatureRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: NomenclatureRepository::class)]
@@ -24,6 +26,17 @@ class Nomenclature
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
     private ?ReferenceSousEnsemble $referenceSousEnsemble = null;
+
+    /**
+     * @var Collection<int, VersionSousEnsemble>
+     */
+    #[ORM\ManyToMany(targetEntity: VersionSousEnsemble::class)]
+    private Collection $versionsAcceptees;
+
+    public function __construct()
+    {
+        $this->versionsAcceptees = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -62,6 +75,30 @@ class Nomenclature
     public function setReferenceSousEnsemble(?ReferenceSousEnsemble $referenceSousEnsemble): static
     {
         $this->referenceSousEnsemble = $referenceSousEnsemble;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, VersionSousEnsemble>
+     */
+    public function getVersionsAcceptees(): Collection
+    {
+        return $this->versionsAcceptees;
+    }
+
+    public function addVersionsAcceptee(VersionSousEnsemble $versionsAcceptee): static
+    {
+        if (!$this->versionsAcceptees->contains($versionsAcceptee)) {
+            $this->versionsAcceptees->add($versionsAcceptee);
+        }
+
+        return $this;
+    }
+
+    public function removeVersionsAcceptee(VersionSousEnsemble $versionsAcceptee): static
+    {
+        $this->versionsAcceptees->removeElement($versionsAcceptee);
 
         return $this;
     }
