@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\VersionProduitRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: VersionProduitRepository::class)]
@@ -20,6 +22,17 @@ class VersionProduit
     #[ORM\ManyToOne(inversedBy: 'versions')]
     #[ORM\JoinColumn(nullable: false)]
     private ?ReferenceProduit $referenceProduit = null;
+
+    /**
+     * @var Collection<int, Nomenclature>
+     */
+    #[ORM\OneToMany(targetEntity: Nomenclature::class, mappedBy: 'versionProduit')]
+    private Collection $nomenclatures;
+
+    public function __construct()
+    {
+        $this->nomenclatures = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -46,6 +59,36 @@ class VersionProduit
     public function setReferenceProduit(?ReferenceProduit $referenceProduit): static
     {
         $this->referenceProduit = $referenceProduit;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Nomenclature>
+     */
+    public function getNomenclatures(): Collection
+    {
+        return $this->nomenclatures;
+    }
+
+    public function addNomenclature(Nomenclature $nomenclature): static
+    {
+        if (!$this->nomenclatures->contains($nomenclature)) {
+            $this->nomenclatures->add($nomenclature);
+            $nomenclature->setVersionProduit($this);
+        }
+
+        return $this;
+    }
+
+    public function removeNomenclature(Nomenclature $nomenclature): static
+    {
+        if ($this->nomenclatures->removeElement($nomenclature)) {
+            // set the owning side to null (unless already changed)
+            if ($nomenclature->getVersionProduit() === $this) {
+                $nomenclature->setVersionProduit(null);
+            }
+        }
 
         return $this;
     }
