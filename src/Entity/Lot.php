@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\LotRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: LotRepository::class)]
@@ -22,6 +24,17 @@ class Lot
 
     #[ORM\Column]
     private ?int $quantitePrevue = null;
+
+    /**
+     * @var Collection<int, Systeme>
+     */
+    #[ORM\OneToMany(targetEntity: Systeme::class, mappedBy: 'lot')]
+    private Collection $systemes;
+
+    public function __construct()
+    {
+        $this->systemes = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -60,6 +73,36 @@ class Lot
     public function setQuantitePrevue(int $quantitePrevue): static
     {
         $this->quantitePrevue = $quantitePrevue;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Systeme>
+     */
+    public function getSystemes(): Collection
+    {
+        return $this->systemes;
+    }
+
+    public function addSysteme(Systeme $systeme): static
+    {
+        if (!$this->systemes->contains($systeme)) {
+            $this->systemes->add($systeme);
+            $systeme->setLot($this);
+        }
+
+        return $this;
+    }
+
+    public function removeSysteme(Systeme $systeme): static
+    {
+        if ($this->systemes->removeElement($systeme)) {
+            // set the owning side to null (unless already changed)
+            if ($systeme->getLot() === $this) {
+                $systeme->setLot(null);
+            }
+        }
 
         return $this;
     }
