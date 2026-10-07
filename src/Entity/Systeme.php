@@ -28,6 +28,13 @@ class Systeme
     #[ORM\OneToMany(targetEntity: SousEnsemble::class, mappedBy: 'systeme')]
     private Collection $sousEnsembles;
 
+    #[ORM\Column]
+    private ?\DateTimeImmutable $integreLe = null;
+
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?User $integrePar = null;
+
     public function __construct()
     {
         $this->sousEnsembles = new ArrayCollection();
@@ -88,6 +95,30 @@ class Systeme
                 $sousEnsemble->setSysteme(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getIntegreLe(): ?\DateTimeImmutable
+    {
+        return $this->integreLe;
+    }
+
+    public function setIntegreLe(\DateTimeImmutable $integreLe): static
+    {
+        $this->integreLe = $integreLe;
+
+        return $this;
+    }
+
+    public function getIntegrePar(): ?User
+    {
+        return $this->integrePar;
+    }
+
+    public function setIntegrePar(?User $integrePar): static
+    {
+        $this->integrePar = $integrePar;
 
         return $this;
     }
