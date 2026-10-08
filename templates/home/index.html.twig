@@ -1,15 +1,38 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Accueil{% endblock %}
+{% block title %}Produits{% endblock %}
 
 {% block body %}
-    <h1>Accueil</h1>
+    <h1>Produits</h1>
     <p>Connecté : {{ app.user.userIdentifier }}</p>
+
+    {# Recherche en GET : l'adresse (?q=...) peut être mise en favori ou partagée #}
+    <form method="get" action="{{ path('app_home') }}" data-controller="recherche">
+        <label for="q">Rechercher un produit</label>
+        <input type="search" id="q" name="q" value="{{ q }}" autocomplete="off"
+            placeholder="Référence ou description" data-recherche-target="champ">
+        <button type="submit">Rechercher</button>
+        {% if q %}<a href="{{ path('app_home') }}">Effacer</a>{% endif %}
+    </form>
+
+    {% if produits is empty %}
+        <p>Aucun produit ne correspond à « {{ q }} ».</p>
+    {% else %}
+        <p>{{ produits|length }} produit(s)</p>
+        <ul>
+            {% for produit in produits %}
+                <li>
+                    <strong>{{ produit.reference }}</strong> — {{ produit.description }}
+                    ({{ produit.versions|length }} version(s))
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    {# Liens existants, déplacés plus tard dans une vraie barre de navigation #}
     <p><a href="{{ path('app_integration') }}">Intégration</a></p>
-    {# is_granted tient compte de la hiérarchie : l'admin voit aussi ce bouton #}
     {% if is_granted('ROLE_QUALITE') %}
         <p><a href="{{ path('app_user_new') }}">Inscrire un nouvel utilisateur</a></p>
     {% endif %}
-
     <p><a href="{{ path('app_logout') }}">Se déconnecter</a></p>
 {% endblock %}

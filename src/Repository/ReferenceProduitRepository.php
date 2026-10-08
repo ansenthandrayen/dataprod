@@ -16,6 +16,26 @@ class ReferenceProduitRepository extends ServiceEntityRepository
         parent::__construct($registry, ReferenceProduit::class);
     }
 
+        /**
+     * Recherche par référence ou description. Sans terme, renvoie tous les produits.
+     *
+     * @return ReferenceProduit[]
+     */
+    public function rechercher(?string $terme): array
+    {
+        $qb = $this->createQueryBuilder('p')->orderBy('p.reference', 'ASC');
+
+        $terme = trim((string) $terme);
+        if ('' !== $terme) {
+            // % et _ sont des jokers de LIKE : on les neutralise pour une recherche littérale
+            $motif = '%' . addcslashes($terme, '%_\\') . '%';
+            $qb->andWhere('p.reference LIKE :motif OR p.description LIKE :motif')
+                ->setParameter('motif', $motif);
+        }
+
+        return $qb->getQuery()->getResult();
+    }
+
 //    /**
 //     * @return ReferenceProduit[] Returns an array of ReferenceProduit objects
 //     */
