@@ -1,0 +1,20 @@
+{% extends 'produit/_layout.html.twig' %}
+
+{% block contenu %}
+    <h2>Versions et lots</h2>
+
+    {% for version in produit.versions %}
+        <h3>Version {{ version.lettre }}</h3>
+        {% if version.lots is empty %}
+            <p>Aucun lot.</p>
+        {% else %}
+            <ul>
+                {% for lot in version.lots %}
+                    <li>{{ lot.numero }} — {{ lot.systemes|length }} intégré(s) sur {{ lot.quantitePrevue }} prévu(s)</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    {% else %}
+        <p>Aucune version définie pour ce produit.</p>
+    {% endfor %}
+{% endblock %}

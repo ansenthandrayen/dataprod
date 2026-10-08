@@ -22,7 +22,8 @@
         <ul>
             {% for produit in produits %}
                 <li>
-                    <strong>{{ produit.reference }}</strong> — {{ produit.description }}
+                    <a href="{{ path('app_produit', {id: produit.id}) }}"><strong>{{ produit.reference }}</strong></a>
+                    — {{ produit.description }}
                     ({{ produit.versions|length }} version(s))
                 </li>
             {% endfor %}
