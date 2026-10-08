@@ -25,6 +25,7 @@ class UserFixtures extends Fixture
             $this->passwordHasher->hashPassword($admin, 'password')
         );
         $manager->persist($admin);
+        $this->addReference('user-admin', $admin);
 
         // --- Qualité ---
         $qualite = new User();
@@ -34,6 +35,7 @@ class UserFixtures extends Fixture
             $this->passwordHasher->hashPassword($qualite, 'password')
         );
         $manager->persist($qualite);
+        $this->addReference('user-qualite', $qualite);
 
         // --- Opérateur 1 ---
         $operateur1 = new User();
@@ -43,6 +45,7 @@ class UserFixtures extends Fixture
             $this->passwordHasher->hashPassword($operateur1, 'password')
         );
         $manager->persist($operateur1);
+        $this->addReference('user-operateur1', $operateur1);
 
         // --- Opérateur 2 ---
         $operateur2 = new User();
@@ -52,6 +55,7 @@ class UserFixtures extends Fixture
             $this->passwordHasher->hashPassword($operateur2, 'password')
         );
         $manager->persist($operateur2);
+        $this->addReference('user-operateur2', $operateur2);
 
         $manager->flush();
     }

@@ -12,8 +12,10 @@ use App\Entity\VersionProduit;
 use App\Entity\VersionSousEnsemble;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
+use App\Entity\User;
+use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 
-class ProductionFixtures extends Fixture
+class ProductionFixtures extends Fixture implements DependentFixtureInterface
 {
     // Catalogue des sous-ensembles : référence => description + versions existantes
     private const SOUS_ENSEMBLES = [
@@ -77,8 +79,20 @@ class ProductionFixtures extends Fixture
         ['reference' => 'ORVEX440-PRINT', 'version' => 'C', 'code' => '3626', 'prevus' => 8,  'integres' => 1],
     ];
 
+    public function getDependencies(): array
+    {
+        // UserFixtures doit être chargée avant celle-ci
+        return [UserFixtures::class];
+    }
+       
     public function load(ObjectManager $manager): void
     {
+        
+        $operateurs = [
+            $this->getReference('user-operateur1', User::class),
+            $this->getReference('user-operateur2', User::class),
+        ];
+
         // 1) Catalogue des sous-ensembles et de leurs versions
         $refsSE = [];      // "REFERENCE" => objet ReferenceSousEnsemble
         $versionsSE = [];  // "REFERENCE|LETTRE" => objet VersionSousEnsemble
@@ -143,11 +157,18 @@ class ProductionFixtures extends Fixture
 
             // La nomenclature de la version dit quoi scanner pour chaque système
             $composition = self::PRODUITS[$reference]['versions'][$lettre];
-
+            
+            // 3526 => semaine 35 de 2026, le lundi à 8 h
+            $semaine = (int) substr($donnees['code'], 0, 2);
+            $annee = 2000 + (int) substr($donnees['code'], 2, 2);
+            $dateDebut = (new \DateTimeImmutable())->setISODate($annee, $semaine, 1)->setTime(8, 0);
+            
             for ($i = 1; $i <= $donnees['integres']; $i++) {
                 $systeme = (new Systeme())
                     ->setNumeroSerie(sprintf('%s%04d', $numeroLot, $i)) // ex : ORVEX102-TV A35260001
-                    ->setLot($lot);
+                    ->setLot($lot)
+                    ->setIntegreLe($dateDebut->modify(sprintf('+%d minutes', $i * 7)))
+                    ->setIntegrePar($operateurs[($i - 1) % 2]); // alterne opérateur 1 et 2
                 $manager->persist($systeme);
 
                 foreach ($composition as $refSousEnsemble => [$quantite, $acceptees]) {

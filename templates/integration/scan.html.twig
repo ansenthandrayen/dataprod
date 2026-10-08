@@ -1,0 +1,57 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Lot {{ lot.numero }}{% endblock %}
+
+{% block body %}
+
+    <style>
+        input[data-etat="ok"] { border: 2px solid green; }
+        input[aria-invalid="true"] { border: 2px solid red; }
+        .erreur-scan { color: red; }
+    </style>
+    
+    <h1>Lot {{ lot.numero }}</h1>
+
+    {% for message in app.flashes('success') %}
+        <p>{{ message }}</p>
+    {% endfor %}
+    {% for message in app.flashes('error') %}
+        <p>{{ message }}</p>
+    {% endfor %}
+
+    {# Compteur calculé, jamais stocké : on compte les systèmes du lot #}
+    <p>{{ lot.systemes|length }} intégré(s) sur {{ lot.quantitePrevue }} prévu(s)</p>
+
+    <h2>Composition attendue</h2>
+    <ul>
+        {% for ligne in lot.versionProduit.nomenclatures %}
+            <li>
+                {{ ligne.referenceSousEnsemble.reference }} × {{ ligne.quantite }}
+                (versions acceptées :
+                {% for v in ligne.versionsAcceptees %}{{ v.lettre }}{% if not loop.last %}, {% endif %}{% endfor %})
+            </li>
+        {% endfor %}
+    </ul>
+
+    {% if erreurs %}
+        <div role="alert">
+            <p>Intégration refusée :</p>
+            <ul>
+                {% for erreur in erreurs %}
+                    <li>{{ erreur }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+
+    {{ form_start(form, {attr: {
+        'data-controller': 'scan',
+        'data-scan-url-value': path('app_integration_controle', {id: lot.id}),
+        'data-action': 'keydown->scan#touche change->scan#changement input->scan#saisie',
+    }}) }}
+        {{ form_widget(form) }}
+        <button type="submit">Valider l'intégration</button>
+    {{ form_end(form) }}
+
+    <p><a href="{{ path('app_integration') }}">Changer de lot</a></p>
+{% endblock %}
