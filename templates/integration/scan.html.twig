@@ -1,0 +1,18 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Lot {{ lot.numero }}{% endblock %}
+
+{% block body %}
+    <h1>Lot {{ lot.numero }}</h1>
+
+    {% for message in app.flashes('success') %}
+        <p>{{ message }}</p>
+    {% endfor %}
+
+    {# Compteur calculé, jamais stocké : on compte les systèmes du lot #}
+    <p>{{ lot.systemes|length }} intégré(s) sur {{ lot.quantitePrevue }} prévu(s)</p>
+
+    <p><em>La saisie des systèmes arrive à l'étape suivante.</em></p>
+
+    <p><a href="{{ path('app_integration') }}">Changer de lot</a></p>
+{% endblock %}

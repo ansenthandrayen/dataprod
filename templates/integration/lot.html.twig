@@ -1,0 +1,16 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Intégration{% endblock %}
+
+{% block body %}
+    <h1>Intégration</h1>
+
+    {% for message in app.flashes('error') %}
+        <p>{{ message }}</p>
+    {% endfor %}
+
+    {{ form_start(form) }}
+        {{ form_row(form.numero) }}
+        <button type="submit">Continuer</button>
+    {{ form_end(form) }}
+{% endblock %}

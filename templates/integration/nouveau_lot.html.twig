@@ -1,0 +1,19 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Nouveau lot{% endblock %}
+
+{% block body %}
+    <h1>Nouveau lot</h1>
+
+    <p>
+        Le lot <strong>{{ numero }}</strong> n'existe pas encore. Il sera créé pour
+        <strong>{{ version.referenceProduit.reference }}</strong>, version <strong>{{ version.lettre }}</strong>.
+    </p>
+
+    {{ form_start(form) }}
+        {{ form_row(form.quantitePrevue) }}
+        <button type="submit">Créer le lot</button>
+    {{ form_end(form) }}
+
+    <p><a href="{{ path('app_integration') }}">Changer de lot</a></p>
+{% endblock %}
