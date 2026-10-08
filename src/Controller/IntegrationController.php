@@ -13,6 +13,11 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use App\Entity\SousEnsemble;
+use App\Entity\Systeme;
+use App\Form\IntegrationType;
+use App\Service\ScanValidator;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 
 // Tous les rôles passent (Qualité et Admin héritent de ROLE_OPERATEUR)
 #[IsGranted('ROLE_OPERATEUR')]
@@ -83,10 +88,71 @@ final class IntegrationController extends AbstractController
         ]);
     }
 
-    // Étape 3 (squelette, à compléter) : Symfony charge le Lot à partir de {id}, 404 s'il n'existe pas
+        // Étape 3 : scan d'un système et de ses sous-ensembles
     #[Route('/integration/lot/{id}', name: 'app_integration_scan', requirements: ['id' => '\d+'])]
-    public function scan(Lot $lot): Response
+    public function scan(Lot $lot, Request $request, ScanValidator $validator, EntityManagerInterface $em): Response
     {
-        return $this->render('integration/scan.html.twig', ['lot' => $lot]);
+        $form = $this->createForm(IntegrationType::class, null, ['lot' => $lot]);
+        $form->handleRequest($request);
+        $erreurs = [];
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $donnees = $form->getData();
+            $snSysteme = (string) ($donnees['snSysteme'] ?? '');
+
+            $snSousEnsembles = [];
+            foreach ($donnees as $nom => $valeur) {
+                if (str_starts_with($nom, IntegrationType::PREFIXE_SOUS_ENSEMBLE)) {
+                    $snSousEnsembles[] = (string) $valeur;
+                }
+            }
+
+            // Contrôle complet côté serveur : la vraie protection
+            $resultat = $validator->validerIntegration($lot, $snSysteme, $snSousEnsembles);
+
+            if ($resultat->estValide()) {
+                $systeme = (new Systeme())
+                    ->setNumeroSerie(trim($snSysteme))
+                    ->setLot($lot)
+                    ->setIntegreLe(new \DateTimeImmutable())
+                    ->setIntegrePar($this->getUser()); // l'opérateur connecté
+                $em->persist($systeme);
+
+                foreach ($resultat->versions as $sn => $version) {
+                    $em->persist(
+                        (new SousEnsemble())
+                            ->setNumeroSerie($sn)
+                            ->setSysteme($systeme)
+                            ->setVersionSousEnsemble($version)
+                    );
+                }
+
+                try {
+                    $em->flush(); // une seule transaction : tout ou rien
+                } catch (UniqueConstraintViolationException) {
+                    // Un autre poste vient d'enregistrer l'un de ces SN. L'EntityManager est fermé : on redirige.
+                    $this->addFlash('error', "Un de ces numéros de série vient d'être enregistré par un autre poste. Rescannez.");
+
+                    return $this->redirectToRoute('app_integration_scan', ['id' => $lot->getId()]);
+                }
+
+                $this->addFlash('success', sprintf('Système %s intégré.', $systeme->getNumeroSerie()));
+
+                // Redirection : un F5 ne renvoie pas le formulaire, et le suivant arrive vide
+                return $this->redirectToRoute('app_integration_scan', ['id' => $lot->getId()]);
+            }
+
+            $erreurs = $resultat->erreurs;
+        }
+
+                // Turbo n'affiche la réponse à un POST que si c'est une redirection (succès)
+        // ou un statut 422 (refus). Un 200 est ignoré : on le force quand il y a des erreurs.
+        $reponse = new Response(null, [] === $erreurs ? Response::HTTP_OK : Response::HTTP_UNPROCESSABLE_ENTITY);
+
+        return $this->render('integration/scan.html.twig', [
+            'lot' => $lot,
+            'form' => $form,
+            'erreurs' => $erreurs,
+        ], $reponse);
     }
 }
