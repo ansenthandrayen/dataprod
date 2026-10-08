@@ -26,7 +26,7 @@ class IntegrationType extends AbstractType
         $builder->add('snSysteme', TextType::class, [
             'label' => 'SN du système',
             'required' => false,
-            'attr' => ['autofocus' => true, 'autocomplete' => 'off'],
+            'attr' => ['autofocus' => true, 'autocomplete' => 'off', 'data-scan-type' => 'systeme'],
         ]);
 
         // Ordre stable : par référence de sous-ensemble
@@ -43,7 +43,7 @@ class IntegrationType extends AbstractType
                 $builder->add(self::PREFIXE_SOUS_ENSEMBLE . $ligne->getId() . '_' . $i, TextType::class, [
                     'label' => sprintf('%s — n° %d/%d', $reference, $i, $ligne->getQuantite()),
                     'required' => false,
-                    'attr' => ['autocomplete' => 'off'],
+                    'attr' => ['autocomplete' => 'off', 'data-scan-type' => 'sous_ensemble'],
                 ]);
             }
         }

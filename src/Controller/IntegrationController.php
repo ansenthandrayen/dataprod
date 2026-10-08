@@ -18,6 +18,8 @@ use App\Entity\Systeme;
 use App\Form\IntegrationType;
 use App\Service\ScanValidator;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
+use App\Service\ResultatScan;
+use Symfony\Component\HttpFoundation\JsonResponse;
 
 // Tous les rôles passent (Qualité et Admin héritent de ROLE_OPERATEUR)
 #[IsGranted('ROLE_OPERATEUR')]
@@ -155,4 +157,27 @@ final class IntegrationController extends AbstractController
             'erreurs' => $erreurs,
         ], $reponse);
     }
+
+        // Contrôle d'UN seul scan, appelé par le JavaScript à chaque saisie. Lecture seule : rien n'est enregistré.
+    #[Route('/integration/lot/{id}/controle', name: 'app_integration_controle', requirements: ['id' => '\d+'], methods: ['GET'])]
+    public function controle(Lot $lot, Request $request, ScanValidator $validator): JsonResponse
+    {
+        $type = $request->query->getString('type');
+        $sn = trim($request->query->getString('sn'));
+        // SN déjà acceptés dans les autres champs du formulaire (?deja[]=...&deja[]=...)
+        $deja = array_values(array_filter($request->query->all('deja'), 'is_string'));
+
+        if ('' === $sn) {
+            return $this->json(['ok' => false, 'erreur' => 'SN vide.']);
+        }
+
+        $resultat = match ($type) {
+            'systeme' => $validator->validerSysteme($sn, $lot),
+            'sous_ensemble' => $validator->validerSousEnsemble($sn, $lot, $deja),
+            default => ResultatScan::refuse('Type de contrôle inconnu.'),
+        };
+
+        return $this->json(['ok' => $resultat->estAccepte(), 'erreur' => $resultat->erreur]);
+    }
+    
 }
