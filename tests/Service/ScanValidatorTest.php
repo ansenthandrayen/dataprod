@@ -175,4 +175,66 @@ class ScanValidatorTest extends TestCase
 
         $this->assertSame([], $manques);
     }
+
+        // ---------- Contrôle complet d'une intégration ----------
+
+    public function testIntegrationCompleteEstValide(): void
+    {
+        $resultat = $this->validator->validerIntegration($this->lot, 'ORVEX102-TV A35260001', [
+            'ORVEX-USB A35260101',
+            'ORVEX-USB B35260102',
+            'ORVEX-LCD55 A35260201',
+        ]);
+
+        $this->assertTrue($resultat->estValide());
+        $this->assertCount(3, $resultat->versions);
+        $this->assertSame('B', $resultat->versions['ORVEX-USB B35260102']->getLettre());
+    }
+
+    public function testIntegrationIncompleteEstRefusee(): void
+    {
+        // Un seul USB sur deux, et pas de dalle LCD
+        $resultat = $this->validator->validerIntegration($this->lot, 'ORVEX102-TV A35260001', [
+            'ORVEX-USB A35260101',
+        ]);
+
+        $this->assertFalse($resultat->estValide());
+        $this->assertStringContainsString('Incomplet', implode(' ', $resultat->erreurs));
+    }
+
+    public function testIntegrationAvecVersionRefuseeEstRefusee(): void
+    {
+        $resultat = $this->validator->validerIntegration($this->lot, 'ORVEX102-TV A35260001', [
+            'ORVEX-USB A35260101',
+            'ORVEX-USB C35260102', // version C non acceptée
+            'ORVEX-LCD55 A35260201',
+        ]);
+
+        $this->assertFalse($resultat->estValide());
+        $this->assertStringContainsString('Version C', implode(' ', $resultat->erreurs));
+    }
+
+    public function testIntegrationSansSnSystemeEstRefusee(): void
+    {
+        $resultat = $this->validator->validerIntegration($this->lot, '', [
+            'ORVEX-USB A35260101',
+            'ORVEX-USB B35260102',
+            'ORVEX-LCD55 A35260201',
+        ]);
+
+        $this->assertFalse($resultat->estValide());
+        $this->assertStringContainsString('obligatoire', implode(' ', $resultat->erreurs));
+    }
+
+    public function testIntegrationAvecUnDoublonDansLaSoumissionEstRefusee(): void
+    {
+        $resultat = $this->validator->validerIntegration($this->lot, 'ORVEX102-TV A35260001', [
+            'ORVEX-USB A35260101',
+            'ORVEX-USB A35260101', // même SN scanné deux fois
+            'ORVEX-LCD55 A35260201',
+        ]);
+
+        $this->assertFalse($resultat->estValide());
+        $this->assertStringContainsString('déjà été scanné', implode(' ', $resultat->erreurs));
+    }
 }

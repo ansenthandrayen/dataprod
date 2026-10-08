@@ -119,6 +119,52 @@ class ScanValidator
         return $manques;
     }
 
+        /**
+     * Contrôle complet d'une intégration soumise (validation finale côté serveur).
+     *
+     * @param string[] $snSousEnsembles
+     */
+    public function validerIntegration(Lot $lot, string $snSysteme, array $snSousEnsembles): ResultatIntegration
+    {
+        $erreurs = [];
+        $versions = [];
+
+        // 1) Le système
+        $snSysteme = trim($snSysteme);
+        if ('' === $snSysteme) {
+            $erreurs[] = 'Système : le SN est obligatoire.';
+        } else {
+            $resultat = $this->validerSysteme($snSysteme, $lot);
+            if (!$resultat->estAccepte()) {
+                $erreurs[] = sprintf('Système : %s', $resultat->erreur);
+            }
+        }
+
+        // 2) Les sous-ensembles, dans l'ordre : chacun connaît ceux qui le précèdent
+        $acceptes = [];
+        foreach ($snSousEnsembles as $sn) {
+            $sn = trim($sn);
+            if ('' === $sn) {
+                continue; // champ non rempli : signalé par lignesIncompletes() plus bas
+            }
+
+            $resultat = $this->validerSousEnsemble($sn, $lot, $acceptes);
+            if ($resultat->estAccepte()) {
+                $acceptes[] = $sn;
+                $versions[$sn] = $resultat->version;
+            } else {
+                $erreurs[] = sprintf('%s : %s', $sn, $resultat->erreur);
+            }
+        }
+
+        // 3) Tout ce que la nomenclature attend est-il présent ?
+        foreach ($this->lignesIncompletes($lot, $acceptes) as $manque) {
+            $erreurs[] = 'Incomplet — ' . $manque;
+        }
+
+        return new ResultatIntegration($erreurs, $versions);
+    }
+
     /** @return array{0: string, 1: string}|null [référence, lettre], ou null si le format est invalide */
     private function analyser(string $sn): ?array
     {
