@@ -1,0 +1,52 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ produit.reference }}{% endblock %}
+
+{% block body %}
+    {# Style provisoire, à déplacer dans un fichier CSS plus tard #}
+    <style>
+        .menu-produit ul { display: flex; gap: 1rem; list-style: none; padding: 0; }
+        .menu-produit [aria-current] { font-weight: bold; text-decoration: underline; }
+        .menu-produit [aria-disabled] { color: #888; cursor: not-allowed; }
+    </style>
+
+    {# Chaque entrée : un libellé, et la route de sa page (null = page pas encore créée) #}
+    {% set menu = [
+        {libelle: 'Aperçu', route: 'app_produit'},
+        {libelle: 'Intégration', route: 'app_integration'},
+        {libelle: 'Test', route: null},
+        {libelle: 'Contrôle', route: null},
+        {libelle: 'Expédition', route: null},
+        {libelle: 'Dépannage', route: null},
+        {libelle: 'Monitoring', route: null},
+    ] %}
+
+    <p><a href="{{ path('app_home') }}">← Tous les produits</a></p>
+
+    <h1>{{ produit.reference }}</h1>
+    <p>{{ produit.description }}</p>
+
+    <nav class="menu-produit" aria-label="Pages du produit">
+        <ul>
+            {% for entree in menu %}
+                <li>
+                    {% if entree.route is null %}
+                        <span aria-disabled="true" title="Bientôt disponible">{{ entree.libelle }}</span>
+                    {% elseif app.current_route starts with entree.route %}
+                        <a href="{{ path(entree.route, {id: produit.id}) }}" aria-current="page">{{ entree.libelle }}</a>
+                    {% else %}
+                        <a href="{{ path(entree.route, {id: produit.id}) }}">{{ entree.libelle }}</a>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    </nav>
+
+    {% for type in ['success', 'error'] %}
+        {% for message in app.flashes(type) %}
+            <p>{{ message }}</p>
+        {% endfor %}
+    {% endfor %}
+
+    {% block contenu %}{% endblock %}
+{% endblock %}

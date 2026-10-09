@@ -1,9 +1,9 @@
-{% extends 'base.html.twig' %}
+{% extends 'produit/_layout.html.twig' %}
 
-{% block title %}Nouveau lot{% endblock %}
+{% block title %}Nouveau lot — {{ produit.reference }}{% endblock %}
 
-{% block body %}
-    <h1>Nouveau lot</h1>
+{% block contenu %}
+    <h2>Nouveau lot</h2>
 
     <p>
         Le lot <strong>{{ numero }}</strong> n'existe pas encore. Il sera créé pour
@@ -15,5 +15,5 @@
         <button type="submit">Créer le lot</button>
     {{ form_end(form) }}
 
-    <p><a href="{{ path('app_integration') }}">Changer de lot</a></p>
+    <p><a href="{{ path('app_integration', {id: produit.id}) }}">Changer de lot</a></p>
 {% endblock %}

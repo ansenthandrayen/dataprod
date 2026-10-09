@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Entity\ReferenceProduit;
 use App\Repository\LotRepository;
 use App\Repository\ReferenceProduitRepository;
 
@@ -19,14 +20,24 @@ class LotResolver
     ) {
     }
 
-    public function resoudre(string $numero): ResultatLot
+    /**
+     * @param ReferenceProduit|null $produit si renseigné, le lot doit appartenir à ce produit
+     */
+    public function resoudre(string $numero, ?ReferenceProduit $produit = null): ResultatLot
     {
         // Un scanner ajoute souvent un retour à la ligne : on nettoie
         $numero = trim($numero);
 
-        // 1) Le lot existe déjà : rien à vérifier de plus
+        // 1) Le lot existe déjà
         $lot = $this->lots->findOneBy(['numero' => $numero]);
         if (null !== $lot) {
+            if (null !== $produit) {
+                $refus = $this->controlerProduit($lot->getVersionProduit()->getReferenceProduit(), $produit);
+                if (null !== $refus) {
+                    return $refus;
+                }
+            }
+
             return ResultatLot::existant($lot);
         }
 
@@ -44,6 +55,12 @@ class LotResolver
             return ResultatLot::refuse(sprintf('Référence produit inconnue : %s.', $reference));
         }
 
+        // 4) Et correspondre au produit courant, s'il y en a un
+        $refus = $this->controlerProduit($referenceProduit, $produit);
+        if (null !== $refus) {
+            return $refus;
+        }
+
         foreach ($referenceProduit->getVersions() as $version) {
             if ($version->getLettre() === $lettre) {
                 return ResultatLot::aCreer($version);
@@ -51,5 +68,19 @@ class LotResolver
         }
 
         return ResultatLot::refuse(sprintf("La version %s n'existe pas pour %s.", $lettre, $reference));
+    }
+
+    /** Renvoie un refus si le produit trouvé n'est pas celui attendu, null sinon. */
+    private function controlerProduit(ReferenceProduit $trouve, ?ReferenceProduit $attendu): ?ResultatLot
+    {
+        if (null === $attendu || $trouve->getReference() === $attendu->getReference()) {
+            return null;
+        }
+
+        return ResultatLot::refuse(sprintf(
+            'Ce numéro de lot correspond au produit %s, pas à %s.',
+            $trouve->getReference(),
+            $attendu->getReference()
+        ));
     }
 }

@@ -95,4 +95,50 @@ class LotResolverTest extends TestCase
         $this->assertTrue($resultat->estRefuse());
         $this->assertStringContainsString('version C', $resultat->erreur);
     }
+    
+    // ---------- Lot limité au produit courant ----------
+
+    public function testLotExistantDuBonProduitEstAccepte(): void
+    {
+        $version = $this->referenceTv->getVersions()->first();
+        $lot = (new Lot())->setNumero('ORVEX102-TV A3526')->setVersionProduit($version);
+        $this->lots->method('findOneBy')->willReturn($lot);
+
+        $resultat = $this->resolver->resoudre('ORVEX102-TV A3526', $this->referenceTv);
+
+        $this->assertTrue($resultat->existe());
+    }
+
+    public function testLotExistantDunAutreProduitEstRefuse(): void
+    {
+        $telephone = (new ReferenceProduit())->setReference('ORVEX330-PHONE')->setDescription('Smartphone');
+        $versionTelephone = (new VersionProduit())->setLettre('B');
+        $telephone->addVersion($versionTelephone);
+        $lot = (new Lot())->setNumero('ORVEX330-PHONE B3526')->setVersionProduit($versionTelephone);
+        $this->lots->method('findOneBy')->willReturn($lot);
+
+        // On est sur la page de la TV, mais le lot est celui du smartphone
+        $resultat = $this->resolver->resoudre('ORVEX330-PHONE B3526', $this->referenceTv);
+
+        $this->assertTrue($resultat->estRefuse());
+        $this->assertStringContainsString('correspond au produit', $resultat->erreur);
+    }
+
+    public function testNouveauLotDuBonProduitDoitEtreCree(): void
+    {
+        $resultat = $this->resolver->resoudre('ORVEX102-TV B3626', $this->referenceTv);
+
+        $this->assertTrue($resultat->doitEtreCree());
+    }
+
+    public function testNouveauLotDunAutreProduitEstRefuse(): void
+    {
+        $telephone = (new ReferenceProduit())->setReference('ORVEX330-PHONE')->setDescription('Smartphone');
+
+        // Le numéro est celui de la TV, mais on est sur la page du smartphone
+        $resultat = $this->resolver->resoudre('ORVEX102-TV B3626', $telephone);
+
+        $this->assertTrue($resultat->estRefuse());
+        $this->assertStringContainsString('correspond au produit', $resultat->erreur);
+    }
 }

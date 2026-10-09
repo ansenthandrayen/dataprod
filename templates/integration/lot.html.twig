@@ -1,13 +1,10 @@
-{% extends 'base.html.twig' %}
+{% extends 'produit/_layout.html.twig' %}
 
-{% block title %}Intégration{% endblock %}
+{% block title %}Intégration — {{ produit.reference }}{% endblock %}
 
-{% block body %}
-    <h1>Intégration</h1>
-
-    {% for message in app.flashes('error') %}
-        <p>{{ message }}</p>
-    {% endfor %}
+{% block contenu %}
+    <h2>Intégration</h2>
+    <p>Scannez ou saisissez le numéro de lot de <strong>{{ produit.reference }}</strong>.</p>
 
     {{ form_start(form) }}
         {{ form_row(form.numero) }}
