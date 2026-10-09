@@ -1,28 +1,21 @@
-{% extends 'base.html.twig' %}
+{% extends 'produit/_layout.html.twig' %}
 
 {% block title %}Lot {{ lot.numero }}{% endblock %}
 
-{% block body %}
-
+{% block contenu %}
+    {# Style provisoire, à déplacer dans un fichier CSS quand on fera le vrai style #}
     <style>
         input[data-etat="ok"] { border: 2px solid green; }
         input[aria-invalid="true"] { border: 2px solid red; }
         .erreur-scan { color: red; }
     </style>
-    
-    <h1>Lot {{ lot.numero }}</h1>
 
-    {% for message in app.flashes('success') %}
-        <p>{{ message }}</p>
-    {% endfor %}
-    {% for message in app.flashes('error') %}
-        <p>{{ message }}</p>
-    {% endfor %}
+    <h2>Lot {{ lot.numero }}</h2>
 
     {# Compteur calculé, jamais stocké : on compte les systèmes du lot #}
     <p>{{ lot.systemes|length }} intégré(s) sur {{ lot.quantitePrevue }} prévu(s)</p>
 
-    <h2>Composition attendue</h2>
+    <h3>Composition attendue</h3>
     <ul>
         {% for ligne in lot.versionProduit.nomenclatures %}
             <li>
@@ -46,12 +39,12 @@
 
     {{ form_start(form, {attr: {
         'data-controller': 'scan',
-        'data-scan-url-value': path('app_integration_controle', {id: lot.id}),
+        'data-scan-url-value': path('app_integration_controle', {id: produit.id, lotId: lot.id}),
         'data-action': 'keydown->scan#touche change->scan#changement input->scan#saisie',
     }}) }}
         {{ form_widget(form) }}
         <button type="submit">Valider l'intégration</button>
     {{ form_end(form) }}
 
-    <p><a href="{{ path('app_integration') }}">Changer de lot</a></p>
+    <p><a href="{{ path('app_integration', {id: produit.id}) }}">Changer de lot</a></p>
 {% endblock %}

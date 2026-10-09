@@ -10,7 +10,10 @@
         {% else %}
             <ul>
                 {% for lot in version.lots %}
-                    <li>{{ lot.numero }} — {{ lot.systemes|length }} intégré(s) sur {{ lot.quantitePrevue }} prévu(s)</li>
+                    <li>
+                        <a href="{{ path('app_integration_scan', {id: produit.id, lotId: lot.id}) }}">{{ lot.numero }}</a>
+                        — {{ lot.systemes|length }} intégré(s) sur {{ lot.quantitePrevue }} prévu(s)
+                    </li>
                 {% endfor %}
             </ul>
         {% endif %}

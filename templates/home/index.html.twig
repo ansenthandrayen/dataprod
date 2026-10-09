@@ -31,7 +31,7 @@
     {% endif %}
 
     {# Liens existants, déplacés plus tard dans une vraie barre de navigation #}
-    <p><a href="{{ path('app_integration') }}">Intégration</a></p>
+    
     {% if is_granted('ROLE_QUALITE') %}
         <p><a href="{{ path('app_user_new') }}">Inscrire un nouvel utilisateur</a></p>
     {% endif %}

@@ -32,7 +32,7 @@
                 <li>
                     {% if entree.route is null %}
                         <span aria-disabled="true" title="Bientôt disponible">{{ entree.libelle }}</span>
-                    {% elseif app.current_route == entree.route %}
+                    {% elseif app.current_route starts with entree.route %}
                         <a href="{{ path(entree.route, {id: produit.id}) }}" aria-current="page">{{ entree.libelle }}</a>
                     {% else %}
                         <a href="{{ path(entree.route, {id: produit.id}) }}">{{ entree.libelle }}</a>
@@ -41,6 +41,12 @@
             {% endfor %}
         </ul>
     </nav>
+
+    {% for type in ['success', 'error'] %}
+        {% for message in app.flashes(type) %}
+            <p>{{ message }}</p>
+        {% endfor %}
+    {% endfor %}
 
     {% block contenu %}{% endblock %}
 {% endblock %}
